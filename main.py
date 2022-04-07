@@ -5,6 +5,13 @@ import pathlib
 import time
 import threading
 import ctypes
+import random
+# api key: AIzaSyC-bYybFpAqDzuetDfKsOXBAPN_wd35HiU
+# search engine id: 03f3be69e01592eca
+
+
+
+
 myappid = 'ModernEra.Kakikomi'
 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
@@ -14,14 +21,10 @@ secondsPassed = 0
 timerBool = False
 
 def getQuote():
-    global animeName, characterName
-    r = requests.get('https://animechan.vercel.app/api/random')
-    pathlib.Path('data.json').write_bytes(r.content)
-    with open('data.json') as f:
-        data = json.load(f)
-    animeName = data["anime"]
-    characterName = data["character"]
-    return data["quote"]
+    prompts = ["Quantum Theory", "Algebra", "Video Game", "VSCode", "Python", "Programming Language","Life", "The meaning of life", "The first theorum of calculus", "The second theorum of calculus", "The first law of thermodynamics", "The second law of thermodynamics"]
+    prompt = random.choice(prompts)+" definition"
+    data = requests.get(f"https://www.googleapis.com/customsearch/v1?key=AIzaSyC-bYybFpAqDzuetDfKsOXBAPN_wd35HiU&cx=03f3be69e01592eca&q={prompt}")
+    return data.json()['items'][random.randint(0,9)]['snippet']
 
 def nextPress():
     global timerBool
@@ -31,7 +34,7 @@ def nextPress():
     prompt.configure(text=getQuote())
     secondsTook.configure(text="")
     wordsPerMinuteLabel.configure(text="")
-    animeInfoLabel.configure(text="")
+    WPMLabel.configure(text="")
     textInput.delete('1.0', tkinter.END)
 
     timerBool = True
@@ -41,6 +44,7 @@ def nextPress():
 def timer():
     global timerBool
     global secondsPassed
+    time.sleep(2)
     while timerBool:
         secondsPassed += 1
         time.sleep(1)    
@@ -53,7 +57,7 @@ def checkInput():
     print(text)
 
     amountOfWords = countWords(prompt['text'])
-    wordsPerMinute = amountOfWords / (secondsPassed / 60)
+    wordsPerMinute = round(amountOfWords / (secondsPassed / 60), 2)
 
     if text == prompt['text']:
         prompt.configure(text="Exact match! Good job!")
@@ -62,15 +66,11 @@ def checkInput():
     timerBool = False
     secondsTook.configure(text="Time in Seconds: " + str(secondsPassed))
     wordsPerMinuteLabel.configure(text="Words Per Minute: " + str(wordsPerMinute))
-    animeInfoLabel.configure(text="Quote is from \"" + animeName + "\", spoken by " + characterName)
+    WPMLabel.configure(text=["You are absolutely garbage","You are still bad", "You are under average", "You are around average", "You might be average", "You are probably average", "You are bad but are probably average", "You are average", "You are above average... I think", "Please complete the Captcha", "You have been banned for botting."][round(wordsPerMinute//10)])
     textInput.delete('1.0', tkinter.END)
 
 def countWords(passage):
-    wordCount = 0
-    for char in passage:
-        if char == " ":
-            wordCount += 1
-    return wordCount
+    return len(passage.split(" "))
     
 if __name__ == "__main__":
     gui = tkinter.Tk()
@@ -83,7 +83,7 @@ if __name__ == "__main__":
     prompt.configure(background="black", foreground="white", font=("Arial", 16))
     secondsTook = tkinter.Label(gui, background="black", foreground="white", font=("Arial", 16))
     wordsPerMinuteLabel = tkinter.Label(gui, background="black", foreground="white", font=("Arial", 16))
-    animeInfoLabel = tkinter.Label(gui, background="black", foreground="white", font=("Arial", 16))
+    WPMLabel = tkinter.Label(gui, background="black", foreground="white", font=("Arial", 16))
 
     textInput = tkinter.Text(gui, height=2, width=50, font=("Arial", 16), wrap="word")
 
@@ -96,6 +96,6 @@ if __name__ == "__main__":
     nextButton.pack(pady=10)
     secondsTook.pack(pady=5)
     wordsPerMinuteLabel.pack(pady=5)
-    animeInfoLabel.pack()
+    WPMLabel.pack()
 
     gui.mainloop()
